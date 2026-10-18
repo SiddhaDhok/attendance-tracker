@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#4f46e5">
+  <title>Attendance Tracker</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ========== SCREEN 1: DASHBOARD ========== -->
+    <section id="screen-dashboard" class="screen">
+      <header class="topbar">
+        <div class="topbar-title">
+          <h1>Attendance</h1>
+          <span id="today-label" class="sub"></span>
+        </div>
+        <button id="btn-add-subject" class="btn btn-primary" type="button">+ Subject</button>
+      </header>
+
+      <div id="subject-list" class="subject-list"></div>
+
+      <div id="empty-state" class="empty-state" hidden>
+        <p>No subjects yet.</p>
+        <p class="sub">Tap "+ Subject" to add your first one.</p>
+      </div>
+
+      <footer class="data-tools">
+        <button id="btn-export" class="btn btn-ghost" type="button">Export data</button>
+        <button id="btn-import" class="btn btn-ghost" type="button">Import data</button>
+        <input id="import-file" type="file" accept="application/json" hidden>
+      </footer>
+    </section>
+
+    <!-- ========== SCREEN 2: ADD / EDIT SUBJECT ========== -->
+    <section id="screen-subject" class="screen" hidden>
+      <header class="topbar">
+        <button id="btn-subject-back" class="btn-icon" type="button" aria-label="Back">&larr;</button>
+        <div class="topbar-title">
+          <h1 id="subject-form-title">Add subject</h1>
+        </div>
+      </header>
+
+      <form id="subject-form" class="form" autocomplete="off">
+        <input id="subject-id" type="hidden">
+
+        <label class="field">
+          <span>Subject name</span>
+          <input id="subject-name" type="text" maxlength="40" placeholder="e.g. Data Structures" required>
+        </label>
+
+        <label class="field">
+          <span>Required attendance (%)</span>
+          <input id="subject-required" type="number" min="1" max="100" step="1" value="75" inputmode="numeric" required>
+        </label>
+
+        <div class="form-actions">
+          <button class="btn btn-primary btn-block" type="submit">Save subject</button>
+          <button id="btn-subject-delete" class="btn btn-danger btn-block" type="button" hidden>Delete subject</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ========== SCREEN 3: CALENDAR FOR ONE SUBJECT ========== -->
+    <section id="screen-calendar" class="screen" hidden>
+      <header class="topbar">
+        <button id="btn-calendar-back" class="btn-icon" type="button" aria-label="Back">&larr;</button>
+        <div class="topbar-title">
+          <h1 id="calendar-subject-name"></h1>
+          <span id="calendar-required" class="sub"></span>
+        </div>
+        <button id="btn-edit-subject" class="btn-icon" type="button" aria-label="Edit subject">&#9998;</button>
+      </header>
+
+      <div id="calendar-summary" class="summary"></div>
+
+      <div class="month-nav">
+        <button id="btn-prev-month" class="btn-icon" type="button" aria-label="Previous month">&lsaquo;</button>
+        <h2 id="month-label"></h2>
+        <button id="btn-next-month" class="btn-icon" type="button" aria-label="Next month">&rsaquo;</button>
+      </div>
+
+      <div class="weekdays" aria-hidden="true">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+      <div id="calendar-grid" class="calendar-grid"></div>
+
+      <ul class="legend">
+        <li><span class="dot dot-present"></span>Present</li>
+        <li><span class="dot dot-absent"></span>Absent</li>
+        <li><span class="dot dot-cancelled"></span>Cancelled</li>
+        <li><span class="dot dot-upcoming"></span>Upcoming</li>
+      </ul>
+
+      <button id="btn-quick-fill" class="btn btn-secondary btn-block" type="button">Quick-fill class days</button>
+      <p class="hint">Tap a date to add a class, mark absent, or mark cancelled. Past classes you don't mark absent count as present.</p>
+    </section>
+
+  </div>
+
+  <!-- ========== BOTTOM SHEET: ACTIONS FOR ONE DATE ========== -->
+  <div id="day-sheet" class="sheet-backdrop" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="day-sheet-title">
+      <h3 id="day-sheet-title"></h3>
+      <p id="day-sheet-status" class="sub"></p>
+      <div id="day-sheet-actions" class="sheet-actions"></div>
+      <button id="btn-day-close" class="btn btn-ghost btn-block" type="button">Close</button>
+    </div>
+  </div>
+
+  <!-- ========== BOTTOM SHEET: QUICK-FILL CLASS DAYS ========== -->
+  <div id="fill-sheet" class="sheet-backdrop" hidden>
+    <form id="fill-form" class="sheet" role="dialog" aria-modal="true" aria-labelledby="fill-title">
+      <h3 id="fill-title">Quick-fill class days</h3>
+      <p class="sub">Choose the weekdays this subject meets and a date range. You can remove holidays afterwards.</p>
+
+      <div class="weekday-picks">
+        <label><input type="checkbox" name="weekday" value="1"><span>Mon</span></label>
+        <label><input type="checkbox" name="weekday" value="2"><span>Tue</span></label>
+        <label><input type="checkbox" name="weekday" value="3"><span>Wed</span></label>
+        <label><input type="checkbox" name="weekday" value="4"><span>Thu</span></label>
+        <label><input type="checkbox" name="weekday" value="5"><span>Fri</span></label>
+        <label><input type="checkbox" name="weekday" value="6"><span>Sat</span></label>
+        <label><input type="checkbox" name="weekday" value="0"><span>Sun</span></label>
+      </div>
+
+      <label class="field">
+        <span>From</span>
+        <input id="fill-start" type="date" required>
+      </label>
+      <label class="field">
+        <span>To</span>
+        <input id="fill-end" type="date" required>
+      </label>
+
+      <button class="btn btn-primary btn-block" type="submit">Add class days</button>
+      <button id="btn-fill-cancel" class="btn btn-ghost btn-block" type="button">Cancel</button>
+    </form>
+  </div>
+
+  <!-- ========== SMALL MESSAGE THAT APPEARS AT THE BOTTOM ========== -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
